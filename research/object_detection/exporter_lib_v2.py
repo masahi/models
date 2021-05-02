@@ -103,13 +103,18 @@ class DetectionInferenceModule(tf.Module):
       image, true_shape = self._model.preprocess(image[tf.newaxis, :, :, :])
       return image[0], true_shape[0]
 
-    images, true_shapes = tf.map_fn(
-        _decode_and_preprocess,
-        elems=batch_input,
-        parallel_iterations=32,
-        back_prop=False,
-        fn_output_signature=(tf.float32, tf.int32))
-    return images, true_shapes
+    # images, true_shapes = tf.map_fn(
+    #     _decode_and_preprocess,
+    #     elems=batch_input,
+    #     parallel_iterations=32,
+    #     back_prop=False,
+    #     fn_output_signature=(tf.float32, tf.int32))
+
+    # print(images.shape, true_shapes.shape)
+    # return images, true_shapes
+    images, true_shapes = _decode_and_preprocess(batch_input[0])
+
+    return tf.expand_dims(images, 0), tf.expand_dims(true_shapes, 0)
 
   def _run_inference_on_images(self, images, true_shapes, **kwargs):
     """Cast image to float and run inference.
