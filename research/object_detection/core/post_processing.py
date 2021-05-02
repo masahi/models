@@ -973,12 +973,12 @@ def batch_multiclass_non_max_suppression(boxes,
       classes as inferred from scores.shape.
   """
   if use_combined_nms:
-    if change_coordinate_frame:
-      raise ValueError(
-          'change_coordinate_frame (normalizing coordinates'
-          ' relative to clip_window) is not supported by combined_nms.')
-    if num_valid_boxes is not None:
-      raise ValueError('num_valid_boxes is not supported by combined_nms.')
+    # if change_coordinate_frame:
+    #   raise ValueError(
+    #       'change_coordinate_frame (normalizing coordinates'
+    #       ' relative to clip_window) is not supported by combined_nms.')
+    # if num_valid_boxes is not None:
+    #   raise ValueError('num_valid_boxes is not supported by combined_nms.')
     if masks is not None:
       raise ValueError('masks is not supported by combined_nms.')
     if soft_nms_sigma != 0.0:
@@ -994,9 +994,20 @@ def batch_multiclass_non_max_suppression(boxes,
     if parallel_iterations != 32:
       tf.logging.warning('Number of batch items to be processed in parallel is'
                          ' not configurable by combined_nms.')
+    if num_valid_boxes is not None:
+      tf.logging.warning('num_valid_boxes is not supported by combined_nms.')
     if max_classes_per_detection > 1:
       tf.logging.warning(
           'max_classes_per_detection is not configurable by combined_nms.')
+
+    if change_coordinate_frame:
+      with tf.name_scope(scope, 'ChangeCoordinateFrame'):
+        shift = tf.stack([clip_window[:, 0], clip_window[:, 1],
+                          clip_window[:, 0], clip_window[:, 1]], axis=1)
+        y_scale = 1.0 / (clip_window[:, 2] - clip_window[:, 0])
+        x_scale = 1.0 / (clip_window[:, 3] - clip_window[:, 1])
+        scale = tf.stack([y_scale, x_scale, y_scale, x_scale], axis=1)
+        boxes = (boxes - shift) * scale
 
     with tf.name_scope(scope, 'CombinedNonMaxSuppression'):
       (batch_nmsed_boxes, batch_nmsed_scores, batch_nmsed_classes,
