@@ -1140,8 +1140,7 @@ def _build_center_net_feature_extractor(feature_extractor_config, is_training):
           feature_extractor_config.depth_multiplier,
       'use_separable_conv':
           use_separable_conv,
-      'upsampling_interpolation':
-          feature_extractor_config.upsampling_interpolation,
+      'upsampling_interpolation': "bilinear",
   }
 
 
